@@ -1,12 +1,27 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+
+import Login from './pages/Login';
+import Register from './pages/Register';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUserList from './pages/AdminUserList';
+import AdminAbsensi from './pages/AdminAbsensi';
+import AdminStatistik from './pages/AdminStatistik';
+import KaryawanDashboard from './pages/KaryawanDashboard';
+import KaryawanRiwayat from './pages/KaryawanRiwayat';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Redirect root ke /login */}
         <Route path="/" element={<Navigate to="/login" />} />
+        
+        {/* Public */}
         <Route path="/login" element={<Login />} />
-        {/* ADMIN */}
+        <Route path="/register" element={<Register />} />
+
+        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -39,7 +54,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* KARYAWAN */}
+
+        {/* Karyawan Routes */}
         <Route
           path="/karyawan"
           element={
@@ -56,6 +72,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 404 fallback */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );

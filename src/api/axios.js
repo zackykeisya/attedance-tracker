@@ -1,10 +1,15 @@
+// src/api/axios.js
 import axios from 'axios';
 
-const instance = axios.create({
-  baseURL: 'http://localhost:8000', // Ganti sesuai URL API kamu
+const api = axios.create({
+  baseURL: 'http://localhost:8000', // Ganti jika API-mu online
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-instance.interceptors.request.use((config) => {
+// Tambahkan token jika ada
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -12,4 +17,4 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
-export default instance;
+export default api;
