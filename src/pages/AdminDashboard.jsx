@@ -6,9 +6,12 @@ import Footer from '../components/Footer';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export default function AdminDashboard() {
+  //ini bagian navigate
   const navigate = useNavigate();
+  //ini bagian state user
   const [user, setUser] = useState(null);
 
+  //ini bagian ambil user dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) {
@@ -16,12 +19,13 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  //ini bagian logout
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-  // Tambahkan fungsi handleResetDay
+  //ini bagian handle reset hari ke hari sekarang
   const handleResetDay = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -44,8 +48,7 @@ export default function AdminDashboard() {
     }
   };
 
-  
-  // Tambahkan fungsi handleSkipDay
+  //ini bagian handle skip hari ke hari berikutnya
   const handleSkipDay = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -68,6 +71,7 @@ export default function AdminDashboard() {
     }
   };
 
+  //ini bagian render utama dashboard admin
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
       <Navbar user={user} onLogout={handleLogout} />
@@ -83,7 +87,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="row g-4">
-          {/* User Management Card */}
+          {/* ini bagian card kelola users */}
           <div className="col-md-6 col-lg-4">
             <Link to="/admin/users" className="card card-hover h-100 text-decoration-none">
               <div className="card-body">
@@ -101,7 +105,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {/* Attendance Management Card */}
+          {/* ini bagian card kelola absensi */}
           <div className="col-md-6 col-lg-4">
             <Link to="/admin/absensi" className="card card-hover h-100 text-decoration-none">
               <div className="card-body">
@@ -119,7 +123,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {/* Statistics Card */}
+          {/* ini bagian card statistik absensi */}
           <div className="col-md-6 col-lg-4">
             <Link to="/admin/statistik" className="card card-hover h-100 text-decoration-none">
               <div className="card-body">
@@ -137,7 +141,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {/* Additional Cards (optional) */}
+          {/* ini bagian card riwayat aktivitas */}
           <div className="col-md-6 col-lg-4">
             <div className="card h-100">
               <div className="card-body">
@@ -155,6 +159,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          {/* ini bagian card peringatan */}
           <div className="col-md-6 col-lg-4">
             <div className="card h-100">
               <div className="card-body">
@@ -172,7 +177,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Card Reset Hari */}
+          {/* ini bagian card reset hari */}
           <div className="col-md-6 col-lg-4">
             <div
               className="card h-100 card-hover text-decoration-none"
@@ -194,7 +199,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Card Skip Hari */}
+          {/* ini bagian card skip hari */}
           <div className="col-md-6 col-lg-4">
             <div
               className="card h-100 card-hover text-decoration-none"

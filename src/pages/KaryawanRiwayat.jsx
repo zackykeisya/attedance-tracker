@@ -42,19 +42,21 @@ export default function KaryawanRiwayat() {
         to: new Date().toISOString().split('T')[0],
       };
 
+      // Ambil absensi dan izin user login
       const [attendanceRes, permissionRes] = await Promise.all([
         axios.get(`/history/${user.id}`, { params }),
-        axios.get('/permissions') // HAPUS PARAMS untuk menghindari error 500
+        axios.get('/permissions', { params }) // <-- gunakan params agar filter tanggal sama
       ]);
 
       setData(attendanceRes.data.riwayat || []);
-      setPermissions(Array.isArray(permissionRes.data) ? permissionRes.data : []);
+      // Ambil data izin dari permissionRes.data.data (lihat controller Anda)
+      setPermissions(Array.isArray(permissionRes.data.data) ? permissionRes.data.data : []);
 
       setSummary({
         total: attendanceRes.data.total_absen || 0,
         late: attendanceRes.data.terlambat || 0,
         onTime: attendanceRes.data.tepat_waktu || 0,
-        permission: Array.isArray(permissionRes.data) ? permissionRes.data.length : 0
+        permission: Array.isArray(permissionRes.data.data) ? permissionRes.data.data.length : 0
       });
     } catch (err) {
       console.error('Error fetching history:', err);
@@ -163,18 +165,30 @@ export default function KaryawanRiwayat() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map(absen => (
-                    <tr key={absen.id}>
-                      <td>{formatDate(absen.date)}</td>
-                      <td>{formatTime(absen.clock_in)}</td>
-                      <td>
-                        <span className={`badge ${getStatusBadgeClass(absen)}`}>
-                          {getStatusText(absen)}
-                        </span>
-                      </td>
-                      <td>{formatTime(absen.clock_out)}</td>
-                    </tr>
-                  ))}
+                  {data.map(absen => {
+                    const izinHariIni = permissions.find(p => p.date === absen.date && p.status === 'approved');
+                    const isIzin = !!izinHariIni;
+                    const isIzinSakit = isIzin && izinHariIni.type === 'sick';
+
+                    return (
+                      <tr key={absen.id}>
+                        <td>{formatDate(absen.date)}</td>
+                        <td>{isIzin ? '-' : formatTime(absen.clock_in)}</td>
+                        <td>
+                          {isIzinSakit ? (
+                            <span className="badge bg-info">Izin/Sakit</span>
+                          ) : isIzin ? (
+                            <span className="badge bg-primary">Izin</span>
+                          ) : (
+                            <span className={`badge ${getStatusBadgeClass(absen)}`}>
+                              {getStatusText(absen)}
+                            </span>
+                          )}
+                        </td>
+                        <td>{isIzin ? '-' : formatTime(absen.clock_out)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

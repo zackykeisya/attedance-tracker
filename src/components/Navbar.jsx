@@ -16,7 +16,7 @@ export default function Navbar({ user, onLogout }) {
   // Menu untuk karyawan
   const karyawanNavItems = [
     { path: '/karyawan', icon: 'bi-speedometer2', label: 'Dashboard' },
-    { path: '/karyawan/absensi', icon: 'bi-calendar-check', label: 'Absensi' },
+    { path: '/karyawan', icon: 'bi-calendar-check', label: 'Absensi' },
     { path: '/karyawan/riwayat', icon: 'bi-clock-history', label: 'Riwayat' }
   ];
   
@@ -34,7 +34,8 @@ export default function Navbar({ user, onLogout }) {
       style={{ 
         backgroundColor: '#1a1a2e',
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)'
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+        padding: '0.5rem 1rem'
       }}>
       <div className="container-fluid">
         {/* Brand Logo */}
@@ -59,7 +60,11 @@ export default function Navbar({ user, onLogout }) {
           aria-controls="navbarContent" 
           aria-expanded="false" 
           aria-label="Toggle navigation"
-          style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+          style={{ 
+            borderColor: 'rgba(255,255,255,0.2)',
+            padding: '0.5rem',
+            fontSize: '1.25rem'
+          }}
         >
           <i className="bi bi-list text-white"></i>
         </button>
@@ -68,17 +73,20 @@ export default function Navbar({ user, onLogout }) {
         <div className="collapse navbar-collapse" id="navbarContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             {navItems.map((item) => (
-              <li className="nav-item mx-1" key={item.path}>
+              <li className="nav-item" key={item.path}>
                 <Link 
-                  className={`nav-link position-relative py-3 ${location.pathname === item.path ? 'active' : ''}`}
+                  className={`nav-link position-relative py-2 py-lg-3 px-2 px-lg-3 ${location.pathname === item.path ? 'active' : ''}`}
                   to={item.path}
                   style={{
                     color: location.pathname === item.path ? '#fff' : 'rgba(255,255,255,0.7)',
-                    fontWeight: location.pathname === item.path ? '500' : '400'
+                    fontWeight: location.pathname === item.path ? '500' : '400',
+                    transition: 'all 0.3s ease',
+                    borderRadius: '4px',
+                    margin: '0.1rem 0.25rem'
                   }}
                 >
-                  <i className={`bi ${item.icon} me-2`}></i>
-                  {item.label}
+                  <i className={`bi ${item.icon} me-1 me-lg-2`}></i>
+                  <span className="d-inline d-lg-inline">{item.label}</span>
                   {location.pathname === item.path && (
                     <span className="position-absolute bottom-0 start-50 translate-middle-x bg-gradient" 
                       style={{
@@ -95,7 +103,7 @@ export default function Navbar({ user, onLogout }) {
           </ul>
 
           {/* User Dropdown */}
-          <div className="d-flex align-items-center">
+          <div className="d-flex align-items-center ms-lg-2">
             <div className="dropdown">
               <button
                 className="btn btn-link text-white dropdown-toggle d-flex align-items-center text-decoration-none p-0"
@@ -103,18 +111,24 @@ export default function Navbar({ user, onLogout }) {
                 id="userDropdown"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
+                style={{ outline: 'none', boxShadow: 'none' }}
               >
-                <div className="position-relative me-2">
+                <div className="position-relative me-1 me-lg-2">
                   <div className="bg-gradient rounded-circle p-2" style={{
-                    background: 'linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%)'
+                    background: 'linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%)',
+                    width: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}>
-                    <i className="bi bi-person-circle fs-5 text-white"></i>
+                    <i className="bi bi-person-circle text-white fs-5"></i>
                   </div>
                   <span className="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-dark rounded-circle"></span>
                 </div>
                 <div className="text-start d-none d-lg-block">
-                  <div className="fw-semibold text-white">{user?.name || 'User'}</div>
-                  <small className="text-white-50" style={{ fontSize: '0.75rem' }}>{roleTitle}</small>
+                  <div className="fw-semibold text-white" style={{ fontSize: '0.9rem' }}>{user?.name || 'User'}</div>
+                  <small className="text-white-50" style={{ fontSize: '0.7rem' }}>{roleTitle}</small>
                 </div>
               </button>
               <ul 
@@ -134,14 +148,23 @@ export default function Navbar({ user, onLogout }) {
                     borderBottom: '1px solid rgba(255,255,255,0.05)'
                   }}>
                     <div className="bg-gradient rounded-circle p-2 me-3" style={{
-                      background: 'linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%)'
+                      background: 'linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%)',
+                      width: '48px',
+                      height: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}>
                       <i className="bi bi-person-circle text-white fs-4"></i>
                     </div>
                     <div>
-                      <div className="fw-semibold text-white">{user?.name || 'User'}</div>
-                      <small className="text-white-50">{user?.email || 'user@example.com'}</small>
-                      <div className="badge bg-primary mt-1" style={{ fontSize: '0.65rem' }}>
+                      <div className="fw-semibold text-white" style={{ fontSize: '0.95rem' }}>{user?.name || 'User'}</div>
+                      <small className="text-white-50 d-block" style={{ fontSize: '0.8rem' }}>{user?.email || 'user@example.com'}</small>
+                      <div className="badge bg-primary mt-1" style={{ 
+                        fontSize: '0.65rem',
+                        background: 'linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%)',
+                        border: 'none'
+                      }}>
                         {roleTitle}
                       </div>
                     </div>
@@ -152,7 +175,8 @@ export default function Navbar({ user, onLogout }) {
                     to={`${basePath}/profile`}
                     style={{ 
                       transition: 'all 0.2s ease',
-                      borderLeft: '3px solid transparent'
+                      borderLeft: '3px solid transparent',
+                      fontSize: '0.9rem'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
@@ -172,7 +196,8 @@ export default function Navbar({ user, onLogout }) {
                     to={`${basePath}/settings`}
                     style={{ 
                       transition: 'all 0.2s ease',
-                      borderLeft: '3px solid transparent'
+                      borderLeft: '3px solid transparent',
+                      fontSize: '0.9rem'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
@@ -193,7 +218,8 @@ export default function Navbar({ user, onLogout }) {
                       to={`${basePath}/notifications`}
                       style={{ 
                         transition: 'all 0.2s ease',
-                        borderLeft: '3px solid transparent'
+                        borderLeft: '3px solid transparent',
+                        fontSize: '0.9rem'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
@@ -207,7 +233,8 @@ export default function Navbar({ user, onLogout }) {
                       <i className="bi bi-bell me-3" style={{ width: '20px', color: '#8f94fb' }}></i>
                       <span>Notifikasi</span>
                       <span className="badge bg-danger ms-auto" style={{ 
-                        backgroundColor: '#ff4d4d !important'
+                        backgroundColor: '#ff4d4d !important',
+                        fontSize: '0.7rem'
                       }}>3</span>
                     </Link>
                   </li>
@@ -219,7 +246,8 @@ export default function Navbar({ user, onLogout }) {
                     onClick={onLogout}
                     style={{ 
                       transition: 'all 0.2s ease',
-                      borderLeft: '3px solid transparent'
+                      borderLeft: '3px solid transparent',
+                      fontSize: '0.9rem'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'rgba(255, 77, 77, 0.1)';

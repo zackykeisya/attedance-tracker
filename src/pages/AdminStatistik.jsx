@@ -7,12 +7,19 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminStatistik() {
+  //ini bagian state statistik absensi
   const [data, setData] = useState([]);
+  //ini bagian state data izin
+  const [permissions, setPermissions] = useState([]);
+  //ini bagian state loading
   const [loading, setLoading] = useState(true);
+  //ini bagian state range waktu
   const [timeRange, setTimeRange] = useState('monthly');
+  //ini bagian state user
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  //ini bagian ambil user dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) {
@@ -20,27 +27,53 @@ export default function AdminStatistik() {
     }
   }, []);
 
+  //ini bagian logout
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
+  //ini bagian fetch statistik absensi dan data izin
   const fetchStatistik = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/admin/absensi/statistik?range=${timeRange}`);
-      setData(res.data);
+      // Ambil statistik absensi dan data izin admin sekaligus
+      const [statRes, izinRes] = await Promise.all([
+        axios.get(`/admin/absensi/statistik?range=${timeRange}`),
+        axios.get(`/admin/permissions`) // <-- panggil data izin admin di sini
+      ]);
+      setData(statRes.data);
+      setPermissions(Array.isArray(izinRes.data.data) ? izinRes.data.data : []);
     } catch (err) {
       console.error(err);
-      alert('Gagal memuat data statistik.');
+      alert('Gagal memuat data statistik atau izin.');
     } finally {
       setLoading(false);
     }
   };
 
+  //ini bagian fetch statistik saat timeRange berubah
   useEffect(() => {
     fetchStatistik();
   }, [timeRange]);
+
+  //ini bagian hitung total izin per bulan/tahun
+  const getIzinCount = (item) => {
+    if (timeRange === 'monthly') {
+      // item.bulan format: "Juni 2025" atau "2025-06"
+      return permissions.filter(p => {
+        const izinDate = new Date(p.date);
+        const izinMonth = izinDate.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+        return izinMonth === item.bulan;
+      }).length;
+    } else {
+      // yearly
+      return permissions.filter(p => {
+        const izinYear = new Date(p.date).getFullYear();
+        return String(izinYear) === String(item.tahun);
+      }).length;
+    }
+  };
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
@@ -54,7 +87,7 @@ export default function AdminStatistik() {
                 <i className="bi bi-bar-chart-line me-2 text-primary"></i>
                 Statistik Absensi
               </h2>
-              <p className="text-muted mb-0">Analisis data kehadiran karyawan</p>
+              <p className="text-muted mb-0">Analisis data kehadiran karyawan & izin</p>
             </div>
             
             <div className="btn-group" role="group">
@@ -105,6 +138,13 @@ export default function AdminStatistik() {
                             borderRadius: '8px',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                           }}
+                          //ini bagian custom tooltip izin
+                          formatter={(value, name, props) => {
+                            if (name === 'Izin') {
+                              return [`${value} izin`, 'Izin'];
+                            }
+                            return [value, name];
+                          }}
                         />
                         <Legend 
                           wrapperStyle={{
@@ -124,6 +164,15 @@ export default function AdminStatistik() {
                           fill="#ff6b6b" 
                           radius={[4, 4, 0, 0]}
                           animationDuration={1500}
+                        />
+                        {/* ini bagian bar izin */}
+                        <Bar
+                          dataKey={(item) => getIzinCount(item)}
+                          name="Izin"
+                          fill="#00b894"
+                          radius={[4, 4, 0, 0]}
+                          animationDuration={1500}
+                          // stackId="a" // jika ingin stack
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -149,6 +198,10 @@ export default function AdminStatistik() {
                                 </h6>
                                 <small className="text-muted">
                                   Total: {item.total} karyawan
+                                </small>
+                                <br />
+                                <small className="text-success">
+                                  Izin: {getIzinCount(item)}
                                 </small>
                               </div>
                               <div className="text-end">

@@ -9,9 +9,8 @@ export default function AdminUserList() {
   const [addForm, setAddForm] = useState({ name: '', email: '', password: '', role: 'karyawan' });
   const [editForm, setEditForm] = useState({ id: null, name: '', email: '', password: '', role: 'karyawan' });
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordInput, setShowPasswordInput] = useState(false); // For form password visibility
-  const [showPasswordsTable, setShowPasswordsTable] = useState(false); // For table password visibility
+  const [showPassword, setShowPassword] = useState(false); // Untuk form
+  const [visiblePasswords, setVisiblePasswords] = useState({}); // Untuk tabel
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
@@ -46,7 +45,16 @@ export default function AdminUserList() {
       setAddForm({ name: '', email: '', password: '', role: 'karyawan' });
       fetchUsers();
     } catch (err) {
-      alert('Gagal menambahkan user. ' + (err.response?.data?.message || ''));
+      // Tampilkan pesan error validasi dari backend jika ada
+      if (err.response?.data?.errors) {
+        alert(
+          Object.values(err.response.data.errors)
+            .map(msgArr => msgArr.join(', '))
+            .join('\n')
+        );
+      } else {
+        alert('Gagal menambahkan user. ' + (err.response?.data?.message || ''));
+      }
     } finally {
       setLoading(false);
     }
@@ -115,6 +123,14 @@ export default function AdminUserList() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Tambahkan fungsi togglePasswordVisibility di dalam komponen
+  const togglePasswordVisibility = (userId) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
@@ -202,7 +218,6 @@ export default function AdminUserList() {
                           onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
                         >
                           <option value="karyawan">Karyawan</option>
-                          <option value="admin">Admin</option>
                         </select>
                       </div>
 
@@ -299,7 +314,6 @@ export default function AdminUserList() {
                             onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                           >
                             <option value="karyawan">Karyawan</option>
-                            <option value="admin">Admin</option>
                           </select>
                         </div>
 
@@ -359,13 +373,6 @@ export default function AdminUserList() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <button 
-                    className={`btn btn-sm ${showPasswordsTable ? 'btn-danger' : 'btn-outline-secondary'}`}
-                    onClick={() => setShowPasswordsTable(!showPasswordsTable)}
-                    title={showPasswordsTable ? "Sembunyikan Password" : "Tampilkan Password"}
-                  >
-                    <i className={`bi ${showPasswordsTable ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-                  </button>
                 </div>
               </div>
               <div className="card-body">
@@ -375,7 +382,7 @@ export default function AdminUserList() {
                       <tr>
                         <th scope="col">Nama</th>
                         <th scope="col">Email</th>
-                        <th scope="col">Password</th>
+                        {/* Hapus kolom Password */}
                         <th scope="col">Role</th>
                         <th scope="col" className="text-end">Aksi</th>
                       </tr>
@@ -386,13 +393,7 @@ export default function AdminUserList() {
                           <tr key={user.id} className={editForm.id === user.id ? 'table-primary' : ''}>
                             <td>{user.name}</td>
                             <td>{user.email}</td>
-                            <td>
-                              {showPasswordsTable && user.password ? (
-                                <span className="text-monospace">{user.password}</span>
-                              ) : (
-                                <span className="text-monospace">••••••••</span>
-                              )}
-                            </td>
+                            {/* Hapus kolom Password di sini */}
                             <td>
                               <span className={`badge ${user.role === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
                                 {user.role}
@@ -417,7 +418,7 @@ export default function AdminUserList() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="text-center py-4">
+                          <td colSpan="4" className="text-center py-4">
                             <i className="bi bi-exclamation-circle fs-4 text-muted"></i>
                             <p className="mt-2">Tidak ada data user</p>
                           </td>
