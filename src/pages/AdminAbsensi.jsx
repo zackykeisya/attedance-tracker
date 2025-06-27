@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export default function AdminAbsensi() {
-  //ini bagian state
   const [data, setData] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [activeTab, setActiveTab] = useState('attendance');
@@ -15,324 +14,363 @@ export default function AdminAbsensi() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  //ini bagian ambil user dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
-  //ini bagian logout
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-  //ini bagian fetch data absensi dan izin untuk admin
   const fetchData = async () => {
     setLoading(true);
     try {
       const [absensiRes, izinRes] = await Promise.all([
         axios.get(`/admin/absensi`),
-        axios.get(`/admin/permissions`) // <-- panggil data izin admin di sini
+        axios.get(`/admin/permissions?status=all`)
       ]);
       setData(absensiRes.data.data);
       setPermissions(Array.isArray(izinRes.data.data) ? izinRes.data.data : []);
     } catch (err) {
       console.error(err);
-      alert('Gagal memuat data absensi atau izin.');
+      alert('Failed to load attendance or permission data.');
     } finally {
       setLoading(false);
     }
   };
 
-  //ini bagian update status izin
   const handlePermissionStatus = async (uuid, status) => {
-    if (!window.confirm(`Yakin ingin ${status === 'approved' ? 'menyetujui' : 'menolak'} izin ini?`)) return;
+    if (!window.confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this permission?`)) return;
     try {
       await axios.put(`/admin/permissions/${uuid}/status`, { status });
       fetchData();
     } catch (err) {
       console.error(err);
-      alert('Gagal memperbarui status izin.');
+      alert('Failed to update permission status.');
     }
   };
 
-  //ini bagian reset absensi
   const handleReset = async (uuid) => {
-    if (!window.confirm('Yakin ingin reset absensi ini?')) return;
+    if (!window.confirm('Are you sure you want to reset this attendance?')) return;
     try {
       await axios.put(`/admin/absensi/${uuid}/reset`);
       fetchData();
     } catch (err) {
-      alert('Gagal reset absensi.');
+      alert('Failed to reset attendance.');
     }
   };
 
-  //ini bagian reset izin
   const handleResetPermission = async (uuid) => {
-    if (!window.confirm('Yakin ingin reset pengajuan izin ini?')) return;
+    if (!window.confirm('Are you sure you want to reset this permission request?')) return;
     try {
       await axios.put(`/admin/permissions/${uuid}/reset`);
       fetchData();
     } catch (err) {
       console.error(err);
-      alert('Gagal reset data izin.');
+      alert('Failed to reset permission data.');
     }
   };
 
-  //ini bagian fetch data saat filterUser berubah
   useEffect(() => {
     fetchData();
   }, [filterUser]);
 
-  //ini bagian render utama
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
       <Navbar user={user} onLogout={handleLogout} />
 
       <main className="container-fluid py-4 flex-grow-1">
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white border-bottom-0">
-            <h2 className="card-title mb-0 fw-bold">
-              <i className="bi bi-calendar-check me-2 text-primary"></i>
-              Data Absensi & Izin Semua Karyawan
-            </h2>
+        {/* Glass Card Container */}
+        <div className="card border-0 shadow-lg" style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          borderRadius: '12px',
+          overflow: 'hidden'
+        }}>
+          {/* Card Header with Gradient */}
+          <div className="card-header border-bottom-0 py-3" style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}>
+            <div className="d-flex justify-content-between align-items-center">
+              <h2 className="card-title mb-0 text-white fw-bold">
+                <i className="bi bi-calendar-check me-2"></i>
+                Employee Attendance Dashboard
+              </h2>
+              <div className="d-flex align-items-center">
+                <span className="badge bg-white text-dark me-2">
+                  <i className="bi bi-people-fill me-1"></i>
+                  {data.length} Records
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="card-body">
-            {/* ini bagian tab */}
-            <div className="mb-3">
-              <ul className="nav nav-tabs">
+          <div className="card-body p-0">
+            {/* Modern Tabs */}
+            <div className="px-4 pt-3">
+              <ul className="nav nav-tabs nav-tabs-custom">
                 <li className="nav-item">
-                  <button className={`nav-link ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => setActiveTab('attendance')}>Absensi</button>
+                  <button 
+                    className={`nav-link ${activeTab === 'attendance' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('attendance')}
+                    style={{
+                      borderTopLeftRadius: '8px',
+                      borderTopRightRadius: '8px',
+                      fontWeight: '500',
+                      color: activeTab === 'attendance' ? '#667eea' : '#6c757d'
+                    }}
+                  >
+                    <i className="bi bi-clock-history me-2"></i>
+                    Attendance
+                  </button>
                 </li>
                 <li className="nav-item">
-                  <button className={`nav-link ${activeTab === 'permission' ? 'active' : ''}`} onClick={() => setActiveTab('permission')}>Izin</button>
+                  <button 
+                    className={`nav-link ${activeTab === 'permission' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('permission')}
+                    style={{
+                      borderTopLeftRadius: '8px',
+                      borderTopRightRadius: '8px',
+                      fontWeight: '500',
+                      color: activeTab === 'permission' ? '#667eea' : '#6c757d'
+                    }}
+                  >
+                    <i className="bi bi-envelope-paper me-2"></i>
+                    Permissions
+                  </button>
                 </li>
               </ul>
             </div>
 
-            {/* ini bagian filter user */}
-            {activeTab === 'attendance' && (
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <div className="input-group">
-                    <span className="input-group-text"><i className="bi bi-funnel"></i></span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Filter berdasarkan Nama Karyawan"
-                      value={filterUser}
-                      onChange={(e) => setFilterUser(e.target.value)}
-                    />
-                    <button className="btn btn-outline-secondary" type="button" onClick={() => setFilterUser('')}>
-                      <i className="bi bi-x-lg"></i>
-                    </button>
+            {/* Tab Content */}
+            <div className="px-4 pb-4">
+              {activeTab === 'attendance' && (
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <div className="input-group input-group-custom">
+                      <span className="input-group-text bg-white border-end-0">
+                        <i className="bi bi-search text-muted"></i>
+                      </span>
+                      <input 
+                        type="text" 
+                        className="form-control border-start-0" 
+                        placeholder="Filter by employee name..." 
+                        value={filterUser} 
+                        onChange={(e) => setFilterUser(e.target.value)}
+                        style={{
+                          borderColor: '#dee2e6'
+                        }}
+                      />
+                      {filterUser && (
+                        <button 
+                          className="btn btn-outline-secondary" 
+                          type="button" 
+                          onClick={() => setFilterUser('')}
+                          style={{
+                            borderColor: '#dee2e6'
+                          }}
+                        >
+                          <i className="bi bi-x"></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ini bagian loading */}
-            {loading ? (
-              <div className="text-center py-5">
-                <div className="spinner-border text-primary" role="status" />
-                <p className="mt-2">Memuat data...</p>
-              </div>
-            ) : activeTab === 'attendance' ? (
-              //ini bagian tabel absensi
-              <div className="table-responsive">
-                <table className="table table-hover align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Nama Karyawan</th>
-                      <th>Tanggal</th>
-                      <th className="text-center">Status</th>
-                      <th className="text-center">Clock In</th>
-                      <th className="text-center">Clock Out</th>
-                      <th className="text-center">Durasi</th>
-                      <th className="text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-  {data
-    .filter(absen =>
-      !filterUser || absen.user?.name?.toLowerCase().includes(filterUser.toLowerCase())
-    )
-    .map((absen) => {
-      //ini bagian cari izin yang di-approve pada tanggal dan user yang sama
-      const izinApproved = permissions.find(
-        (p) =>
-          String(p.user_id) === String(absen.user_id) &&
-          p.date === absen.date &&
-          p.status === 'approved'
-      );
-      const isPermission = !!izinApproved;
-      const permissionType = izinApproved?.type;
-
-      //ini bagian mapping jenis izin ke label
-      let izinLabel = 'Izin';
-      if (permissionType === 'sick') izinLabel = 'Sakit';
-      else if (permissionType === 'leave') izinLabel = 'Cuti/Izin';
-      else if (permissionType === 'other') izinLabel = 'Lainnya';
-
-      return (
-        <tr key={absen.id}>
-          <td>
-            <div className="d-flex align-items-center">
-              <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
-                <i className="bi bi-person text-primary"></i>
-              </div>
-              <div>
-                <p className="mb-0 fw-semibold">{absen.user?.name}</p>
-                <small className="text-muted">Gmail: {absen.user?.email}</small>
-              </div>
-            </div>
-          </td>
-          <td>{new Date(absen.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
-          <td className="text-center">
-            {isPermission ? (
-              <span className="badge bg-info">{izinLabel}</span>
-            ) : absen.clock_in && absen.clock_in !== '00:00:00' ? (
-              <span className="badge bg-success">Hadir</span>
-            ) : (
-              <span className="badge bg-secondary">-</span>
-            )}
-          </td>
-          <td className="text-center">
-            {isPermission ? (
-              <span className="badge bg-secondary">-</span>
-            ) : absen.clock_in && absen.clock_in !== '00:00:00' ? (
-              <span className={`badge ${isLate(absen.clock_in) ? 'bg-danger' : 'bg-success'}`}>
-                {formatTime(absen.clock_in)} {isLate(absen.clock_in) && ' (Telat)'}
-              </span>
-            ) : (
-              <span className="badge bg-secondary">-</span>
-            )}
-          </td>
-          <td className="text-center">
-            {isPermission ? (
-              <span className="badge bg-secondary">-</span>
-            ) : absen.clock_out && absen.clock_out !== '00:00:00' ? (
-              <span className="badge bg-danger">{formatTime(absen.clock_out)}</span>
-            ) : (
-              <span className="badge bg-secondary">-</span>
-            )}
-          </td>
-          <td className="text-center">
-            {isPermission ? (
-              <span className="badge bg-secondary">-</span>
-            ) : absen.clock_in && absen.clock_out && absen.clock_in !== '00:00:00' && absen.clock_out !== '00:00:00' ? (
-              <span className="badge bg-info">
-                {calculateDuration(absen.clock_in, absen.clock_out)}
-              </span>
-            ) : (
-              <span className="badge bg-warning">Belum selesai</span>
-            )}
-          </td>
-          <td className="text-center">
-            <button
-              className="btn btn-sm btn-outline-danger"
-              onClick={() => handleReset(absen.id)}
-            >
-              <i className="bi bi-arrow-clockwise me-1"></i>Reset
-            </button>
-          </td>
-        </tr>
-      );
-    })}
-</tbody>
-
-                </table>
-              </div>
-            ) : (
-              //ini bagian tabel izin
-              <div className="table-responsive">
-                <table className="table table-hover align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Nama Karyawan</th>
-                      <th>Tanggal</th>
-                      <th>Jenis Izin</th>
-                      <th>Keterangan</th>
-                      <th>Status</th>
-                      <th className="text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {permissions.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="text-center text-muted py-4">Tidak ada data izin.</td>
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }} />
+                  <p className="mt-3 fw-semibold">Loading data...</p>
+                </div>
+              ) : activeTab === 'attendance' ? (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr style={{
+                        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                      }}>
+                        <th style={{ minWidth: '200px' }}>Employee</th>
+                        <th style={{ minWidth: '150px' }}>Date</th>
+                        <th className="text-center">Status</th>
+                        <th className="text-center">Clock In</th>
+                        <th className="text-center">Clock Out</th>
+                        <th className="text-center">Duration</th>
+                        <th className="text-center">Actions</th>
                       </tr>
-                    ) : (
-                      permissions.map((p) => (
-                        <tr key={p.id}>
-                          <td>{p.user?.name ?? '-'}</td>
-                          <td>{new Date(p.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                          <td>
-                            {p.type === 'sick' ? 'Sakit' : p.type === 'leave' ? 'Cuti/Izin' : 'Lainnya'}
-                          </td>
-                          <td>{p.description ?? '-'}</td>
-                          <td>
-                            <span className={`badge ${
-                              p.status === 'approved' ? 'bg-success' :
-                              p.status === 'rejected' ? 'bg-danger' :
-                              'bg-warning text-dark'
-                            }`}>
-                              {p.status === 'approved' ? 'Disetujui' : p.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
-                            </span>
-                          </td>
-                          <td className="text-center">
-                            <>
-                              {p.status === 'pending' && (
-                                <>
-                                  <button className="btn btn-sm btn-success me-2" onClick={() => handlePermissionStatus(p.id, 'approved')}>
-                                    <i className="bi bi-check-circle me-1"></i>Approve
-                                  </button>
-                                  <button className="btn btn-sm btn-danger me-2" onClick={() => handlePermissionStatus(p.id, 'rejected')}>
-                                    <i className="bi bi-x-circle me-1"></i>Reject
-                                  </button>
-                                </>
+                    </thead>
+                    <tbody>
+                      {data.filter(absen => !filterUser || absen.user?.name?.toLowerCase().includes(filterUser.toLowerCase())).map((absen) => {
+                        const isPermission = absen.is_permission === true;
+                        const permissionType = absen.permission_type;
+                        let permissionLabel = 'Permission';
+                        if (permissionType === 'sick') permissionLabel = 'Sick';
+                        else if (permissionType === 'leave') permissionLabel = 'Leave';
+                        else if (permissionType === 'other') permissionLabel = 'Other';
+
+                        return (
+                          <tr key={absen.id} style={{ borderBottom: '1px solid #f1f1f1' }}>
+                            <td>
+                              <div className="d-flex align-items-center">
+                                <div className="avatar bg-primary bg-opacity-10 text-primary rounded-circle me-3 p-2">
+                                  <i className="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                  <p className="mb-0 fw-semibold">{absen.user?.name || 'Unknown'}</p>
+                                  <small className="text-muted">{absen.user?.email || '-'}</small>
+                                </div>
+                              </div>
+                            </td>
+                            <td>{new Date(absen.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                            <td className="text-center">
+                              {isPermission ? (
+                                <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-1">
+                                  {permissionLabel}
+                                </span>
+                              ) : absen.clock_in && absen.clock_in !== '00:00:00' ? (
+                                <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">
+                                  Present
+                                </span>
+                              ) : (
+                                <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1">
+                                  -
+                                </span>
                               )}
-                              <button className="btn btn-sm btn-outline-danger" onClick={() => handleResetPermission(p.id)}>
+                            </td>
+                            <td className="text-center fw-semibold">{isPermission ? '-' : absen.clock_in || '-'}</td>
+                            <td className="text-center fw-semibold">{isPermission ? '-' : absen.clock_out || '-'}</td>
+                            <td className="text-center">
+                              {isPermission ? '-' : (absen.clock_in && absen.clock_out && absen.clock_in !== '00:00:00' && absen.clock_out !== '00:00:00') ? (
+                                <span className="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                  {calculateDuration(absen.clock_in, absen.clock_out)}
+                                </span>
+                              ) : (
+                                <span className="badge bg-light text-muted border rounded-pill px-3 py-1">
+                                  Not completed
+                                </span>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <button 
+                                className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onClick={() => handleReset(absen.id)}
+                                style={{
+                                  borderColor: '#dc3545',
+                                  color: '#dc3545'
+                                }}
+                              >
                                 <i className="bi bi-arrow-clockwise me-1"></i>Reset
                               </button>
-                            </>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr style={{
+                        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                      }}>
+                        <th style={{ minWidth: '200px' }}>Employee</th>
+                        <th style={{ minWidth: '150px' }}>Date</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th className="text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {permissions.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="text-center text-muted py-5">
+                            <i className="bi bi-inbox fs-1 mb-3"></i>
+                            <p className="fw-semibold">No permission requests found</p>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      ) : (
+                        permissions.map((p) => (
+                          <tr key={p.id} style={{ borderBottom: '1px solid #f1f1f1' }}>
+                            <td>
+                              <div className="d-flex align-items-center">
+                                <div className="avatar bg-primary bg-opacity-10 text-primary rounded-circle me-3 p-2">
+                                  <i className="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                  <p className="mb-0 fw-semibold">{p.user?.name || 'Unknown'}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td>{new Date(p.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                            <td>
+                              <span className="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                {p.type === 'sick' ? 'Sick' : p.type === 'leave' ? 'Leave' : 'Other'}
+                              </span>
+                            </td>
+                            <td>{p.description || '-'}</td>
+                            <td>
+                              <span className={`badge rounded-pill px-3 py-1 ${
+                                p.status === 'approved' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25' :
+                                p.status === 'rejected' ? 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25' :
+                                'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25'
+                              }`}>
+                                {p.status === 'approved' ? 'Approved' : p.status === 'rejected' ? 'Rejected' : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <div className="d-flex justify-content-center gap-2">
+                                {p.status === 'pending' && (
+                                  <>
+                                    <button 
+                                      className="btn btn-sm btn-success rounded-pill px-3"
+                                      onClick={() => handlePermissionStatus(p.id, 'approved')}
+                                    >
+                                      <i className="bi bi-check-circle me-1"></i>Approve
+                                    </button>
+                                    <button 
+                                      className="btn btn-sm btn-danger rounded-pill px-3"
+                                      onClick={() => handlePermissionStatus(p.id, 'rejected')}
+                                    >
+                                      <i className="bi bi-x-circle me-1"></i>Reject
+                                    </button>
+                                  </>
+                                )}
+                                <button 
+                                  className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                  onClick={() => handleResetPermission(p.id)}
+                                >
+                                  <i className="bi bi-arrow-clockwise me-1"></i>Reset
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
+
       <Footer />
     </div>
   );
 }
 
-//ini bagian format jam
-function formatTime(timeString) {
-  const date = new Date(`1970-01-01T${timeString}`);
-  return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-}
-
-//ini bagian hitung durasi
 function calculateDuration(clockIn, clockOut) {
   const [inH, inM] = clockIn.split(':').map(Number);
   const [outH, outM] = clockOut.split(':').map(Number);
   const total = (outH * 60 + outM) - (inH * 60 + inM);
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return `${h} jam ${m} menit`;
-}
-
-//ini bagian cek terlambat
-function isLate(clockIn) {
-  const limit = new Date('1970-01-01T09:00:00');
-  const clock = new Date(`1970-01-01T${clockIn}`);
-  return clock > limit;
+  return `${h}h ${m}m`;
 }
