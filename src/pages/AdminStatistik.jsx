@@ -7,13 +7,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminStatistik() {
-  const [data, setData] = useState([]);
-  const [permissions, setPermissions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('monthly');
-  const [user, setUser] = useState(null);
+  // ===== STATE MANAGEMENT =====
+  const [data, setData] = useState([]); // Data statistik absensi (bulanan/tahunan)
+  const [permissions, setPermissions] = useState([]); // Data izin karyawan
+  const [loading, setLoading] = useState(true); // Status loading saat fetch data
+  const [timeRange, setTimeRange] = useState('monthly'); // Rentang waktu statistik (bulanan/tahunan)
+  const [user, setUser] = useState(null); // Data user admin yang login
   const navigate = useNavigate();
 
+  // Ambil data user admin dari localStorage saat komponen mount
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) {
@@ -21,17 +23,20 @@ export default function AdminStatistik() {
     }
   }, []);
 
+  // Logout admin, hapus data dari localStorage, redirect ke login
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
+  // ===== FETCH STATISTIK =====
+  // Mengambil data statistik absensi dan izin dari server
   const fetchStatistik = async () => {
     setLoading(true);
     try {
       const [statRes, izinRes] = await Promise.all([
-        axios.get(`/admin/absensi/statistik?range=${timeRange}`),
-        axios.get(`/admin/permissions`)
+        axios.get(`/admin/absensi/statistik?range=${timeRange}`), // Statistik absensi
+        axios.get(`/admin/permissions`) // Data izin
       ]);
       setData(statRes.data);
       setPermissions(Array.isArray(izinRes.data.data) ? izinRes.data.data : []);
@@ -43,10 +48,12 @@ export default function AdminStatistik() {
     }
   };
 
+  // Fetch statistik setiap kali timeRange berubah (bulanan/tahunan)
   useEffect(() => {
     fetchStatistik();
   }, [timeRange]);
 
+  // Mendapatkan jumlah izin pada bulan/tahun tertentu
   const getIzinCount = (item) => {
     if (timeRange === 'monthly') {
       return permissions.filter(p => {
@@ -62,15 +69,17 @@ export default function AdminStatistik() {
     }
   };
 
+  // ===== RENDER =====
   return (
     <div className="min-vh-100 d-flex flex-column" style={{ 
       background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
       backdropFilter: 'blur(10px)'
     }}>
+      {/* Navbar admin */}
       <Navbar user={user} onLogout={handleLogout} />
       
       <main className="container-fluid py-4 flex-grow-1">
-        {/* Glass Morphism Card */}
+        {/* Card utama statistik */}
         <div className="card border-0" style={{
           background: 'rgba(255, 255, 255, 0.7)',
           backdropFilter: 'blur(20px)',
@@ -78,7 +87,7 @@ export default function AdminStatistik() {
           boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
           overflow: 'hidden'
         }}>
-          {/* Gradient Header */}
+          {/* Header dengan tab bulanan/tahunan */}
           <div className="card-header border-bottom-0 d-flex justify-content-between align-items-center" style={{
             background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
@@ -92,7 +101,7 @@ export default function AdminStatistik() {
               <p className="mb-0 opacity-75">Analisis data kehadiran karyawan & izin</p>
             </div>
             
-            {/* Modern Tab Navigation */}
+            {/* Tab navigasi bulanan/tahunan */}
             <div className="btn-group" role="group" style={{ 
               borderRadius: '50px',
               overflow: 'hidden',
@@ -126,6 +135,7 @@ export default function AdminStatistik() {
           </div>
 
           <div className="card-body" style={{ padding: '2rem' }}>
+            {/* Loading spinner saat data dimuat */}
             {loading ? (
               <div className="text-center py-5">
                 <div className="spinner-grow text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
@@ -135,6 +145,7 @@ export default function AdminStatistik() {
               </div>
             ) : data.length > 0 ? (
               <div className="row g-4">
+                {/* Grafik batang absensi */}
                 <div className="col-lg-8">
                   <div className="chart-container" style={{ 
                     height: '400px',
@@ -172,6 +183,7 @@ export default function AdminStatistik() {
                           iconSize={12}
                           iconType="circle"
                         />
+                        {/* Bar total hadir */}
                         <Bar 
                           dataKey="total" 
                           name="Total Hadir" 
@@ -179,6 +191,7 @@ export default function AdminStatistik() {
                           radius={[8, 8, 0, 0]} 
                           animationDuration={1500} 
                         />
+                        {/* Bar terlambat */}
                         <Bar 
                           dataKey="telat" 
                           name="Terlambat" 
@@ -186,6 +199,7 @@ export default function AdminStatistik() {
                           radius={[8, 8, 0, 0]} 
                           animationDuration={1500} 
                         />
+                        {/* Bar hadir tepat waktu */}
                         <Bar
                           dataKey={(item) => item.total - item.telat}
                           name="Tepat Waktu"
@@ -193,6 +207,7 @@ export default function AdminStatistik() {
                           radius={[8, 8, 0, 0]}
                           animationDuration={1500}
                         />
+                        {/* Bar izin */}
                         <Bar
                           dataKey={(item) => getIzinCount(item)}
                           name="Izin"
@@ -205,6 +220,7 @@ export default function AdminStatistik() {
                   </div>
                 </div>
                 
+                {/* Detail statistik per bulan/tahun */}
                 <div className="col-lg-4">
                   <div className="h-100" style={{
                     background: 'rgba(255,255,255,0.5)',
@@ -265,6 +281,7 @@ export default function AdminStatistik() {
                 </div>
               </div>
             ) : (
+              // Jika tidak ada data statistik
               <div className="text-center py-5" style={{
                 background: 'rgba(255,255,255,0.5)',
                 borderRadius: '16px',
@@ -283,6 +300,7 @@ export default function AdminStatistik() {
             )}
           </div>
 
+          {/* Footer card: info update & tombol refresh */}
           <div className="card-footer border-top-0 d-flex justify-content-between align-items-center" style={{
             background: 'rgba(255,255,255,0.5)',
             padding: '1.5rem'
@@ -295,6 +313,7 @@ export default function AdminStatistik() {
                 day: 'numeric' 
               })}
             </small>
+            {/* Tombol refresh data */}
             <button 
               className="btn btn-sm rounded-pill px-3"
               style={{
@@ -314,6 +333,7 @@ export default function AdminStatistik() {
         </div>
       </main>
 
+      {/* Footer aplikasi */}
       <Footer />
     </div>
   );

@@ -183,25 +183,6 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {/* Riwayat Aktivitas Card */}
-          <div className="col-md-6 col-xl-4">
-            <div className="card border-0 shadow-sm h-100">
-              <div className="card-body p-4">
-                <div className="d-flex align-items-center mb-3">
-                  <div className="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
-                    <i className="bi bi-clock-history text-warning fs-3"></i>
-                  </div>
-                  <h3 className="card-title mb-0 fw-bold">Riwayat Aktivitas</h3>
-                </div>
-                <p className="card-text text-muted">Lihat log aktivitas sistem terbaru</p>
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <span className="badge bg-warning text-dark rounded-pill">Recent</span>
-                  <i className="bi bi-arrow-right-short fs-4 text-warning"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Peringatan Card */}
           <div className="col-md-6 col-xl-4">
             <div className="card border-0 shadow-sm h-100">

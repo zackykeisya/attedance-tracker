@@ -34,7 +34,9 @@ export default function Navbar({ user, onLogout }) {
         WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-        padding: '0.5rem 1.5rem'
+        padding: '0.5rem 1.5rem',
+        position: 'relative',
+        zIndex: 1000 // Tambahkan z-index tinggi untuk navbar
       }}>
         <div className="container-fluid">
           {/* Brand Logo with Glass Effect */}
@@ -123,39 +125,10 @@ export default function Navbar({ user, onLogout }) {
               ))}
             </ul>
 
-            {/* Search Bar */}
-            <div className="d-flex align-items-center me-3" style={{ maxWidth: '250px' }}>
-              <div className="input-group" style={{
-                background: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(5px)',
-                borderRadius: '50px',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                overflow: 'hidden',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
-              }}>
-                <input 
-                  type="text" 
-                  className="form-control border-0 bg-transparent" 
-                  placeholder="Search..."
-                  style={{
-                    boxShadow: 'none',
-                    padding: '0.5rem 1rem'
-                  }}
-                />
-                <button 
-                  className="btn btn-link text-secondary" 
-                  type="button"
-                  style={{
-                    boxShadow: 'none'
-                  }}
-                >
-                  <i className="bi bi-search"></i>
-                </button>
-              </div>
-            </div>
+            
 
             {/* User Dropdown */}
-            <div className="d-flex align-items-center ms-lg-2">
+            <div className="d-flex align-items-center ms-lg-2" style={{ position: 'relative' }}>
               <div className="dropdown">
                 <button 
                   className="btn btn-link dropdown-toggle d-flex align-items-center text-decoration-none p-0" 
@@ -211,7 +184,9 @@ export default function Navbar({ user, onLogout }) {
                     backdropFilter: 'blur(15px)',
                     WebkitBackdropFilter: 'blur(15px)',
                     overflow: 'hidden',
-                    padding: '0.5rem 0'
+                    padding: '0.5rem 0',
+                    position: 'absolute',
+                    zIndex: 1050 // Pastikan lebih tinggi dari navbar
                   }}
                 >
                   <li>

@@ -5,24 +5,29 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export default function AdminUserList() {
-  const [users, setUsers] = useState([]);
-  const [addForm, setAddForm] = useState({ name: '', email: '', password: '', role: 'karyawan' });
-  const [editForm, setEditForm] = useState({ id: null, name: '', email: '', password: '', role: 'karyawan' });
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
+  // ===== STATE MANAGEMENT =====
+  const [users, setUsers] = useState([]); // Menyimpan daftar user dari server
+  const [addForm, setAddForm] = useState({ name: '', email: '', password: '', role: 'karyawan' }); // Form tambah user
+  const [editForm, setEditForm] = useState({ id: null, name: '', email: '', password: '', role: 'karyawan' }); // Form edit user
+  const [loading, setLoading] = useState(false); // Loading state untuk proses async
+  const [showPassword, setShowPassword] = useState(false); // Toggle show/hide password
+  const [searchTerm, setSearchTerm] = useState(''); // Kata kunci pencarian user
+  const [currentPage, setCurrentPage] = useState(1); // Halaman saat ini pada pagination
+  const usersPerPage = 5; // Jumlah user per halaman
 
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token'); // Token autentikasi admin
+  const user = JSON.parse(localStorage.getItem('user')); // Data user admin yang login
 
+  // ===== HANDLER LOGOUT =====
+  // Logout admin, hapus token & user dari localStorage, redirect ke halaman utama
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/';
   };
 
+  // ===== FETCH USERS =====
+  // Mengambil data user dari API
   const fetchUsers = async () => {
     try {
       const res = await axios.get('/admin/karyawan', {
@@ -34,6 +39,8 @@ export default function AdminUserList() {
     }
   };
 
+  // ===== HANDLE ADD USER =====
+  // Proses tambah user baru ke server
   const handleAddUser = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -41,8 +48,8 @@ export default function AdminUserList() {
       await axios.post('/admin/karyawan', addForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAddForm({ name: '', email: '', password: '', role: 'karyawan' });
-      fetchUsers();
+      setAddForm({ name: '', email: '', password: '', role: 'karyawan' }); // Reset form
+      fetchUsers(); // Refresh data user
     } catch (err) {
       if (err.response?.data?.errors) {
         alert(
@@ -58,6 +65,8 @@ export default function AdminUserList() {
     }
   };
 
+  // ===== HANDLE UPDATE USER =====
+  // Proses update data user yang diedit
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -65,8 +74,8 @@ export default function AdminUserList() {
       await axios.put(`/admin/karyawan/${editForm.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEditForm({ id: null, name: '', email: '', password: '', role: 'karyawan' });
-      fetchUsers();
+      setEditForm({ id: null, name: '', email: '', password: '', role: 'karyawan' }); // Reset form edit
+      fetchUsers(); // Refresh data user
     } catch (err) {
       alert('Gagal mengupdate user. ' + (err.response?.data?.message || ''));
     } finally {
@@ -74,6 +83,8 @@ export default function AdminUserList() {
     }
   };
 
+  // ===== HANDLE EDIT =====
+  // Isi form edit dengan data user yang dipilih
   const handleEdit = (user) => {
     setEditForm({
       id: user.id,
@@ -82,18 +93,20 @@ export default function AdminUserList() {
       password: '',
       role: user.role
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll ke atas agar form edit terlihat
   };
 
+  // ===== HANDLE DELETE =====
+  // Hapus user dari server
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
       try {
         await axios.delete(`/admin/karyawan/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        fetchUsers();
+        fetchUsers(); // Refresh data user
         if (editForm.id === id) {
-          setEditForm({ id: null, name: '', email: '', password: '', role: 'karyawan' });
+          setEditForm({ id: null, name: '', email: '', password: '', role: 'karyawan' }); // Reset form edit jika user yang dihapus sedang diedit
         }
       } catch (err) {
         alert('Gagal menghapus user.');
@@ -101,16 +114,21 @@ export default function AdminUserList() {
     }
   };
 
+  // ===== FILTER, PAGINATION, DAN SEARCH =====
+  // Filter user berdasarkan nama/email sesuai searchTerm
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
+  // ===== USE EFFECT =====
+  // Ambil data user saat komponen pertama kali dimount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -501,20 +519,6 @@ export default function AdminUserList() {
                     <li><a className="dropdown-item" href="#">Tidak Aktif</a></li>
                   </ul>
                 </div>
-                <button className="btn rounded-pill px-3" style={{
-                  background: 'rgba(255,255,255,0.8)',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  color: '#64748b',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.background = 'rgba(0,0,0,0.05)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = 'rgba(255,255,255,0.8)';
-                }}>
-                  <i className="bi bi-download me-1"></i> Ekspor
-                </button>
               </div>
             </div>
           </div>

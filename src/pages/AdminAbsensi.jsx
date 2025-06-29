@@ -6,30 +6,35 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export default function AdminAbsensi() {
-  const [data, setData] = useState([]);
-  const [permissions, setPermissions] = useState([]);
-  const [activeTab, setActiveTab] = useState('attendance');
-  const [filterUser, setFilterUser] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  // ===== STATE MANAGEMENT =====
+  const [data, setData] = useState([]); // Data absensi seluruh karyawan
+  const [permissions, setPermissions] = useState([]); // Data izin seluruh karyawan
+  const [activeTab, setActiveTab] = useState('attendance'); // Tab aktif: attendance/permission
+  const [filterUser, setFilterUser] = useState(''); // Filter nama karyawan
+  const [loading, setLoading] = useState(true); // Status loading
+  const [user, setUser] = useState(null); // Data admin yang login
   const navigate = useNavigate();
 
+  // Ambil data user admin dari localStorage saat komponen mount
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
+  // Logout admin, hapus data dari localStorage, redirect ke login
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
+  // ===== FETCH DATA =====
+  // Mengambil data absensi dan izin dari server
   const fetchData = async () => {
     setLoading(true);
     try {
       const [absensiRes, izinRes] = await Promise.all([
-        axios.get(`/admin/absensi`),
-        axios.get(`/admin/permissions?status=all`)
+        axios.get(`/admin/absensi`), // Data absensi
+        axios.get(`/admin/permissions?status=all`) // Data izin
       ]);
       setData(absensiRes.data.data);
       setPermissions(Array.isArray(izinRes.data.data) ? izinRes.data.data : []);
@@ -41,6 +46,8 @@ export default function AdminAbsensi() {
     }
   };
 
+  // ===== HANDLE PERMISSION STATUS =====
+  // Setujui atau tolak permohonan izin
   const handlePermissionStatus = async (uuid, status) => {
     if (!window.confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this permission?`)) return;
     try {
@@ -52,6 +59,8 @@ export default function AdminAbsensi() {
     }
   };
 
+  // ===== HANDLE RESET ABSENSI =====
+  // Reset data absensi karyawan tertentu
   const handleReset = async (uuid) => {
     if (!window.confirm('Are you sure you want to reset this attendance?')) return;
     try {
@@ -62,6 +71,8 @@ export default function AdminAbsensi() {
     }
   };
 
+  // ===== HANDLE RESET PERMISSION =====
+  // Reset data izin karyawan tertentu
   const handleResetPermission = async (uuid) => {
     if (!window.confirm('Are you sure you want to reset this permission request?')) return;
     try {
@@ -73,10 +84,12 @@ export default function AdminAbsensi() {
     }
   };
 
+  // Ambil data setiap kali filterUser berubah
   useEffect(() => {
     fetchData();
   }, [filterUser]);
 
+  // ===== RENDER =====
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
       <Navbar user={user} onLogout={handleLogout} />
@@ -147,7 +160,13 @@ export default function AdminAbsensi() {
 
             {/* Tab Content */}
             <div className="px-4 pb-4">
-              {activeTab === 'attendance' && (
+              {/* Tabel absensi */}
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }} />
+                  <p className="mt-3 fw-semibold">Loading data...</p>
+                </div>
+              ) : activeTab === 'attendance' ? (
                 <div className="row mb-4">
                   <div className="col-md-6">
                     <div className="input-group input-group-custom">
@@ -177,6 +196,66 @@ export default function AdminAbsensi() {
                         </button>
                       )}
                     </div>
+                  </div>
+
+                  <div className="col-md-6 text-md-end">
+                    <button 
+                      className="btn btn-primary rounded-pill px-4"
+                      onClick={() => navigate('/admin/absensi/tambah')}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderColor: 'transparent'
+                      }}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i>
+                      Add Attendance
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <div className="input-group input-group-custom">
+                      <span className="input-group-text bg-white border-end-0">
+                        <i className="bi bi-search text-muted"></i>
+                      </span>
+                      <input 
+                        type="text" 
+                        className="form-control border-start-0" 
+                        placeholder="Filter by employee name..." 
+                        value={filterUser} 
+                        onChange={(e) => setFilterUser(e.target.value)}
+                        style={{
+                          borderColor: '#dee2e6'
+                        }}
+                      />
+                      {filterUser && (
+                        <button 
+                          className="btn btn-outline-secondary" 
+                          type="button" 
+                          onClick={() => setFilterUser('')}
+                          style={{
+                            borderColor: '#dee2e6'
+                          }}
+                        >
+                          <i className="bi bi-x"></i>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 text-md-end">
+                    <button 
+                      className="btn btn-primary rounded-pill px-4"
+                      onClick={() => navigate('/admin/permissions/tambah')}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderColor: 'transparent'
+                      }}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i>
+                      Add Permission
+                    </button>
                   </div>
                 </div>
               )}
@@ -366,6 +445,8 @@ export default function AdminAbsensi() {
   );
 }
 
+// ===== HELPER FUNCTION =====
+// Menghitung durasi jam kerja dari clock in dan clock out (format: "xh ym")
 function calculateDuration(clockIn, clockOut) {
   const [inH, inM] = clockIn.split(':').map(Number);
   const [outH, outM] = clockOut.split(':').map(Number);

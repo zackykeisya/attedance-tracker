@@ -9,19 +9,21 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export default function KaryawanRiwayat() {
-  const [data, setData] = useState([]);
-  const [permissions, setPermissions] = useState([]);
-  const [summary, setSummary] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filterDays, setFilterDays] = useState(30);
-  const [activeTab, setActiveTab] = useState('attendance');
+  // ===== STATE MANAGEMENT =====
+  const [data, setData] = useState([]); // Data absensi
+  const [permissions, setPermissions] = useState([]); // Data izin
+  const [summary, setSummary] = useState({}); // Ringkasan statistik absensi
+  const [loading, setLoading] = useState(true); // Status loading
+  const [error, setError] = useState(null); // Pesan error
+  const [filterDays, setFilterDays] = useState(30); // Filter hari (7/30/90)
+  const [activeTab, setActiveTab] = useState('attendance'); // Tab aktif: absensi/izin
 
   const navigate = useNavigate();
   const rawUser = localStorage.getItem('user');
   const user = rawUser ? JSON.parse(rawUser) : null;
   const token = localStorage.getItem('token');
 
+  // Ambil data saat komponen mount atau filterDays berubah
   useEffect(() => {
     if (!user || !token) {
       localStorage.clear();
@@ -32,6 +34,8 @@ export default function KaryawanRiwayat() {
     fetchRiwayat(filterDays);
   }, [filterDays]);
 
+  // ===== FETCH DATA RIWAYAT =====
+  // Mengambil data absensi dan izin dari server
   const fetchRiwayat = async (days) => {
     try {
       setLoading(true);
@@ -43,12 +47,14 @@ export default function KaryawanRiwayat() {
       const rangeParams = { from: fromDate, to: today };
       const dateParam = { date: today };
 
+      // Ambil data absensi, izin range, dan izin hari ini
       const [attendanceRes, permissionRes, todayPermissionRes] = await Promise.all([
         axios.get(`/history/${user.id}`, { params: rangeParams }),
         axios.get('/permissions', { params: rangeParams }),
         axios.get('/permissions', { params: dateParam })
       ]);
 
+      // Gabungkan data izin agar tidak duplikat
       const combinedPermissions = [
         ...(Array.isArray(permissionRes.data.data) ? permissionRes.data.data : []),
         ...(Array.isArray(todayPermissionRes.data.data) ? todayPermissionRes.data.data : [])
@@ -60,6 +66,7 @@ export default function KaryawanRiwayat() {
       setData(attendanceRes.data.riwayat || []);
       setPermissions(uniquePermissions);
 
+      // Set ringkasan statistik absensi
       setSummary({
         total: attendanceRes.data.total_absen || 0,
         late: attendanceRes.data.terlambat || 0,
@@ -78,12 +85,16 @@ export default function KaryawanRiwayat() {
     }
   };
 
+  // ===== HELPER FUNCTIONS =====
+  // Format tanggal ke format lokal
   const formatDate = (str) => new Date(str).toLocaleDateString('id-ID', {
     weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
   });
 
+  // Format jam (ambil jam:menit)
   const formatTime = (str) => (str ? str.slice(0, 5) : '-');
 
+  // Icon status absensi (tepat waktu/terlambat/belum absen)
   const getStatusIcon = (absen) => {
     if (!absen.clock_in) return <FiLoader className="text-warning" />;
     const [hour, minute] = absen.clock_in.split(':').map(Number);
@@ -92,6 +103,7 @@ export default function KaryawanRiwayat() {
       : <FiCheckCircle className="text-success" />;
   };
 
+  // Teks status absensi
   const getStatusText = (absen) => {
     const izin = permissions.find(p => p.date === absen.date && p.status === 'approved');
     if (izin) return 'Izin';
@@ -101,6 +113,7 @@ export default function KaryawanRiwayat() {
     return (hour > 8 || (hour === 8 && minute > 0)) ? 'Terlambat' : 'Tepat Waktu';
   };
 
+  // Badge warna status absensi
   const getStatusBadgeClass = (absen) => {
     const izin = permissions.find(p => p.date === absen.date && p.status === 'approved');
     if (izin) return 'bg-info';
@@ -110,24 +123,28 @@ export default function KaryawanRiwayat() {
     return (hour > 8 || (hour === 8 && minute > 0)) ? 'bg-danger' : 'bg-success';
   };
 
+  // Badge warna status izin
   const getPermissionStatusBadge = (status) => {
     if (status === 'approved') return 'bg-success';
     if (status === 'rejected') return 'bg-danger';
     return 'bg-warning text-dark';
   };
 
+  // Teks jenis izin
   const getPermissionTypeText = (type) => {
     if (type === 'sick') return 'Sakit';
     if (type === 'leave') return 'Cuti/Izin';
     return 'Lainnya';
   };
 
+  // ===== RENDER =====
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
       className="container-fluid p-0 min-vh-100 d-flex flex-column bg-light"
     >
+      {/* Navbar karyawan */}
       <Navbar user={user} onLogout={() => {
         axios.post('/logout').finally(() => {
           localStorage.clear();
@@ -136,6 +153,7 @@ export default function KaryawanRiwayat() {
       }} />
 
       <main className="container py-4 flex-grow-1">
+        {/* Header dan filter */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2 className="fw-bold mb-0 text-primary">
             <FiCalendar className="me-2" />
@@ -155,7 +173,7 @@ export default function KaryawanRiwayat() {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Kartu ringkasan statistik */}
         <div className="row mb-4 g-3">
           <div className="col-md-3">
             <div className="card border-0 shadow-sm h-100">
@@ -191,7 +209,7 @@ export default function KaryawanRiwayat() {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tab navigasi absensi/izin */}
         <ul className="nav nav-tabs nav-fill mb-4">
           <li className="nav-item">
             <button 
@@ -213,6 +231,7 @@ export default function KaryawanRiwayat() {
           </li>
         </ul>
 
+        {/* Pesan error */}
         {error && (
           <div className="alert alert-danger d-flex align-items-center">
             <FiAlertCircle className="me-2 fs-4" />
@@ -220,6 +239,7 @@ export default function KaryawanRiwayat() {
           </div>
         )}
 
+        {/* Loading spinner */}
         {loading ? (
           <div className="d-flex justify-content-center py-5">
             <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }} role="status">
@@ -227,6 +247,7 @@ export default function KaryawanRiwayat() {
             </div>
           </div>
         ) : activeTab === 'attendance' ? (
+          // Tabel absensi
           data.length === 0 ? (
             <div className="card border-0 shadow-sm">
               <div className="card-body text-center py-5">
@@ -277,6 +298,7 @@ export default function KaryawanRiwayat() {
             </div>
           )
         ) : (
+          // Tabel izin
           <div className="card border-0 shadow-sm">
             <div className="table-responsive">
               <table className="table table-hover mb-0">
@@ -317,6 +339,7 @@ export default function KaryawanRiwayat() {
         )}
       </main>
 
+      {/* Footer */}
       <Footer />
     </motion.div>
   );
