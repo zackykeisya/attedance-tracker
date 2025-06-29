@@ -199,17 +199,7 @@ export default function AdminAbsensi() {
                   </div>
 
                   <div className="col-md-6 text-md-end">
-                    <button 
-                      className="btn btn-primary rounded-pill px-4"
-                      onClick={() => navigate('/admin/absensi/tambah')}
-                      style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        borderColor: 'transparent'
-                      }}
-                    >
-                      <i className="bi bi-plus-circle me-2"></i>
-                      Add Attendance
-                    </button>
+                    
                   </div>
                 </div>
               ) : (
